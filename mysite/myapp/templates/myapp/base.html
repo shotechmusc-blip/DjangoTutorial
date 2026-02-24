@@ -1,0 +1,31 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>{% block title %}HIT スタンプラリー{% endblock %}</title>
+  <!-- ページ共通スタイル -->
+  <link rel="stylesheet" href="{% static 'myapp/style.css' %}">
+</head>
+<body>
+  <!-- ヘッダー（共通） -->
+  <header class="site-header" aria-label="ページヘッダー">
+    <div class="container">
+      <h1 class="brand">HIT スタンプラリー</h1>
+    </div>
+  </header>
+
+  <!-- 本文 -->
+  <main class="site-main" aria-label="ページ本文">
+    <div class="container">
+      {% if back_url %}
+        <div class="back-row">
+          <a class="btn btn-secondary btn-back" href="{{ back_url }}">← 戻る</a>
+        </div>
+      {% endif %}
+      {% block content %}{% endblock %}
+    </div>
+  </main>
+</body>
+</html>

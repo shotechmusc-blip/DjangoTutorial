@@ -1,0 +1,48 @@
+{% extends 'myapp/base.html' %}
+{% load static %}
+{% block title %}スタンプカード{% endblock %}
+{% block content %}
+  <!-- 進捗バー（%表示） -->
+  <section class="section" aria-label="進捗">
+    <h2>進捗: {{ progress }}%</h2>
+    <div class="progress progress-thick" aria-valuemin="0" aria-valuemax="100" aria-valuenow="{{ progress }}">
+      <div class="progress-bar" style="width: {{ progress }}%"></div>
+    </div>
+  </section>
+
+  <!-- カード: 左上から順にスタンプ表示（簡易） -->
+  <section class="section" aria-label="スタンプカード">
+    <div class="card-grid">
+      {% for slot in slots %}
+        <div class="card-cell {% if slot.spot_id|stringformat:'s' == last_stamped_id %}just-stamped{% endif %} {% if slot.filled %}stamped{% endif %}">
+          {% if slot.filled %}
+            <div class="stamp-circle" aria-label="{{ slot.name }}（押印済み）">
+              {% if slot.icon_url %}
+                <img src="{{ slot.icon_url }}" alt="{{ slot.name }}のアイコン" />
+              {% else %}
+                <img src="{% static 'myapp/spot-placeholder.svg' %}" alt="{{ slot.name }}のアイコン" />
+              {% endif %}
+            </div>
+            <div class="stamp-label">{{ slot.name }}</div>
+          {% else %}
+            <div class="stamp-circle blank" aria-label="未押印"></div>
+          {% endif %}
+        </div>
+      {% endfor %}
+    </div>
+  </section>
+
+  <!-- スポット一覧: 詳細へ遷移して押印 -->
+  <section class="section" aria-label="スポット一覧">
+    <h2>スポット一覧</h2>
+    <div class="column-buttons">
+      {% for spot in spots %}
+        <a class="btn btn-primary btn-floor" href="{% url 'spot_detail' spot.id %}">
+          {% if spot.floor %}{{ spot.floor.name }}{% else %}未設定{% endif %} - {{ spot.name }}
+        </a>
+      {% empty %}
+        <div class="list-item">スポットが未設定です</div>
+      {% endfor %}
+    </div>
+  </section>
+{% endblock %}

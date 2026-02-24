@@ -1,0 +1,197 @@
+/* ページ共通のスタイル */
+
+:root {
+  --text-muted: #666666;
+  --bg: #ffffff;
+  --border: #e5e7eb; /* 薄いグレー */
+  --accent: #2563eb; /* ボタンなどのアクセント色 */
+  --header-bg: #f3f4f6; /* ヘッダー背景のグレー */
+  --secondary: #6b7280; /* 戻るボタン用の落ち着いたグレー */
+}
+
+* { box-sizing: border-box; }
+html, body { height: 100%; }
+body {
+  margin: 0;
+  background: var(--bg);
+  color: #111827;
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans JP", sans-serif;
+}
+
+.container {
+  max-width: 720px;
+  margin: 0 auto;
+  padding: 16px;
+}
+
+/* ヘッダー（背景グレー・下線あり） */
+.site-header {
+  background: var(--header-bg);
+  border-bottom: 1px solid var(--border);
+}
+.brand {
+  margin: 0;
+  padding: 16px 0;
+  color: var(--text-muted);
+  font-size: 28px;
+  font-weight: 600;
+  font-family: "Yu Mincho", "Hiragino Mincho ProN", "Noto Serif JP", "Times New Roman", serif;
+  text-align: center; /* 見出しを中央寄せ */
+}
+
+/* セクション余白 */
+.section { margin: 16px 0; }
+
+/* リスト */
+.list { list-style: none; padding: 0; margin: 0; }
+.list-item { padding: 12px 0; border-bottom: 1px solid var(--border); }
+.list-item a { color: #1f2937; text-decoration: none; }
+.list-item a:hover { text-decoration: underline; }
+
+/* 進捗バー（後で動的更新） */
+.progress {
+  width: 100%;
+  height: 10px;
+  background: #f3f4f6;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  overflow: hidden;
+}
+.progress-bar {
+  height: 100%;
+  width: 0%; /* ダミー */
+  background: #10b981; /* 緑 */
+}
+
+/* 太めの進捗バー（横幅はそのまま、高さだけ拡張） */
+.progress-thick { height: 20px; }
+
+/* 区切り線 */
+.section-separator { border: 0; border-top: 1px solid var(--border); }
+
+/* マップのプレースホルダー（枠付き矩形） */
+.map-placeholder {
+  width: 100%;
+  height: 200px;
+  border: 2px dashed var(--border);
+  display: grid;
+  place-items: center;
+  color: var(--text-muted);
+}
+
+/* アクション行（横並び） */
+.action-row {
+  display: flex;
+  gap: 12px;
+  align-items: stretch; /* ボタン高さを揃える */
+}
+
+/* 縦並びボタンのラッパー */
+.column-buttons { display: grid; gap: 12px; }
+
+/* ボタン（共通） */
+.btn {
+  appearance: none;
+  display: inline-block;
+  padding: 16px 20px; /* スマホを意識してタップ領域を拡大 */
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  border: 1px solid transparent;
+  text-align: center;
+  flex: 1 1 50%; /* 横2つで等幅に */
+  text-decoration: none; /* 下線なし */
+}
+.btn:hover { text-decoration: none; }
+.btn:focus { outline: 2px solid #93c5fd; outline-offset: 2px; }
+
+/* プライマリ（強調・青） */
+.btn-primary {
+  background: var(--accent);
+  color: white;
+}
+.btn-primary:hover { filter: brightness(1.05); }
+.btn-primary:active { filter: brightness(0.95); }
+
+/* セカンダリ（戻る・グレー） */
+.btn-secondary {
+  background: var(--secondary);
+  color: white;
+}
+.btn-secondary:hover { filter: brightness(1.05); }
+.btn-secondary:active { filter: brightness(0.95); }
+
+/* 戻るボタン行 */
+.back-row { margin: 8px 0 16px; }
+.btn-back {
+  text-align: left;
+  text-decoration: none;
+  padding: 12px 16px; /* 少しコンパクトに */
+}
+.btn-back:hover { text-decoration: none; }
+
+/* フロア用ボタン（左揃え・大きめ文字・下線なし） */
+.btn-floor {
+  text-align: left;
+  font-size: 20px;
+  text-decoration: none;
+}
+.btn-floor:hover { text-decoration: none; }
+
+/* モバイル向け微調整 */
+@media (max-width: 480px) {
+  .btn {
+    font-size: 18px;             /* 可読性向上 */
+    padding: 18px 20px;          /* タップしやすく */
+  }
+  /* 画面幅(コンテナ幅)の 1/2 を目安に均等配置 */
+  .action-row {
+    gap: 12px;
+  }
+}
+
+/* カードグリッド（簡易） */
+/* スタンプカードのグリッド */
+.card-grid {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 12px;
+}
+.card-cell {
+  display: grid;
+  grid-template-rows: auto auto;
+  justify-items: center;
+  gap: 8px;
+}
+/* 丸いスタンプ領域 */
+.stamp-circle {
+  width: 96px;
+  height: 96px;
+  border-radius: 50%;
+  border: 2px solid var(--border);
+  overflow: hidden;
+  background: #f8fafc;
+  display: grid;
+  place-items: center;
+}
+.stamp-circle img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+.stamp-circle.disabled {
+  border-color: #d1d5db; /* 少し薄いグレー */
+  background: #f9fafb;
+  cursor: default;
+}
+.stamp-label { font-size: 14px; color: #374151; }
+
+/* 押印状態の表現：縁色と微アニメーション */
+.card-cell.stamped .stamp-circle { border-color: #10b981; background: #ecfdf5; }
+.card-cell.just-stamped .stamp-circle { animation: pulse 0.6s ease-in-out; }
+
+@keyframes pulse {
+  0% { box-shadow: 0 0 0 0 rgba(16,185,129,0.7); }
+  100% { box-shadow: 0 0 0 12px rgba(16,185,129,0.0); }
+}

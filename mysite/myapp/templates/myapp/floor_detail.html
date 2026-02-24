@@ -1,0 +1,13 @@
+{% extends 'myapp/base.html' %}
+{% block title %}{{ floor.name }} | 平面図{% endblock %}
+{% block content %}
+  <!-- 平面図画像の表示（後で実画像に差し替え） -->
+  <section class="section" aria-label="平面図">
+    <h2>{{ floor.name }} 平面図</h2>
+    {% if floor.floor_image %}
+      <img src="{{ floor.floor_image.url }}" alt="{{ floor.name }} の平面図" style="max-width:100%;height:auto;" />
+    {% else %}
+      <div class="map-placeholder">FLOOR MAP PLACEHOLDER</div>
+    {% endif %}
+  </section>
+{% endblock %}

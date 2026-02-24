@@ -1,0 +1,20 @@
+{% extends 'myapp/base.html' %}
+
+{% block title %}ホーム | HIT スタンプラリー{% endblock %}
+
+{% block content %}
+  
+
+ 
+
+  <!-- 区切り -->
+  <hr class="section-separator" />
+
+  <!-- アクション行：ボタンを横に2つ（マップ／スタンプ） -->
+  <section class="section action-section" aria-label="アクション">
+    <div class="action-row">
+      <a class="btn btn-primary" href="{% url 'map_index' %}" aria-label="マップを開く">マップ</a>
+      <a class="btn btn-primary" href="{% url 'card' %}" aria-label="スタンプカード">スタンプカード</a>
+    </div>
+  </section>
+{% endblock %}

@@ -1,0 +1,15 @@
+{% extends 'myapp/base.html' %}
+{% block title %}マップ | フロア一覧{% endblock %}
+{% block content %}
+  <!-- フロア一覧（1F〜5F） -->
+  <section class="section" aria-label="フロア一覧">
+    <h2>Nexus21フロア一覧</h2>
+    <div class="column-buttons">
+      {% for f in floors %}
+        <a class="btn btn-primary btn-floor" href="{% url 'floor_detail' f.id %}">{{ f.name }}</a>
+      {% empty %}
+        <div class="list-item">フロアが未設定です</div>
+      {% endfor %}
+    </div>
+  </section>
+{% endblock %}

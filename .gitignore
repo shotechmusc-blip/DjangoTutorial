@@ -1,0 +1,33 @@
+# Python仮想環境
+pyvenv.cfg
+Include/
+Scripts/
+Lib/
+
+# Python キャッシュ
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+
+# Django
+*.sqlite3
+db.sqlite3
+/media/
+/staticfiles/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# その他
+.env
+.env.local

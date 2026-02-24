@@ -1,0 +1,57 @@
+{% extends 'myapp/base.html' %}
+{% block title %}スポット詳細{% endblock %}
+{% block content %}
+  <!-- スポット詳細（押印／イベント情報） -->
+  <section class="section" aria-label="スポット詳細">
+    <h2>{{ spot.name }}</h2>
+
+    {% if message %}
+      <p style="color:#b91c1c;">{{ message }}</p>
+    {% endif %}
+
+    <!-- ボタン2つ（縦並び） -->
+    <div class="column-buttons">
+      <!-- QR読み取り（後でライブラリ導入）。今はパスコード入力に誘導 -->
+      <details>
+        <summary class="btn btn-primary" style="display:inline-block;">QRコードを読み取る（仮）</summary>
+        <p>QR読み取りは後で追加します。今は紙のパスコードを入力してください。</p>
+      </details>
+
+      <!-- パスコード入力フォーム（押印） -->
+      <form method="post" class="passcode-form">
+        {% csrf_token %}
+        <label for="passcode">パスコード</label>
+        <input type="text" id="passcode" name="passcode" required />
+        <button class="btn btn-primary" type="submit">押印する</button>
+      </form>
+
+      <!-- イベント詳細（仮のプレースホルダー） -->
+      {% if events %}
+        <details open>
+          <summary class="btn btn-primary" style="display:inline-block;">イベント詳細</summary>
+          <ul style="margin-top:0.5rem;">
+            {% for ev in events %}
+              <li style="margin-bottom:0.5rem;">
+                <strong>{{ ev.title }}</strong>
+                {% if ev.start_at %}
+                  <span style="margin-left:0.5rem;">開始: {{ ev.start_at|date:"Y/m/d H:i" }}</span>
+                {% endif %}
+                {% if ev.end_at %}
+                  <span style="margin-left:0.5rem;">終了: {{ ev.end_at|date:"Y/m/d H:i" }}</span>
+                {% endif %}
+                {% if ev.description %}
+                  <div style="margin-top:0.25rem;">{{ ev.description }}</div>
+                {% endif %}
+              </li>
+            {% endfor %}
+          </ul>
+        </details>
+      {% else %}
+        <details>
+          <summary class="btn btn-primary" style="display:inline-block;">イベント詳細</summary>
+          <p>このスポットに紐付くイベントはまだありません。</p>
+        </details>
+      {% endif %}
+    </div>
+  </section>
+{% endblock %}

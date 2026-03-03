@@ -149,3 +149,9 @@ STATIC_ROOT = os.environ.get('STATIC_ROOT', BASE_DIR / 'staticfiles')
 # メディア（アップロード画像）
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
+
+# COOP ヘッダー設定
+# HTTP配信時はブラウザ側で無視される警告が出るため、HTTPS未使用時は明示的に無効化
+enable_https = os.environ.get('ENABLE_HTTPS', 'False') == 'True'
+if not enable_https:
+    SECURE_CROSS_ORIGIN_OPENER_POLICY = None

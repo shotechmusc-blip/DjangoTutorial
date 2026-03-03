@@ -1,0 +1,63 @@
+{% extends 'myapp/base.html' %}
+{% load static %}
+
+{% block title %}擬人化キャラクター | HIT スタンプラリー{% endblock %}
+
+{% block content %}
+<div class="characters-wrapper" id="charactersWrapper">
+  <!-- 各キャラクター：1ページ1キャラ -->
+  {% for character in characters %}
+  <div class="character-page" data-character-id="{{ character.id }}" data-stamp-id="{{ character.stamp_id }}">
+    <div class="character-page-container">
+      
+      <!-- 左側：キャラクター画像 -->
+      <div class="character-visual-section">
+        <div class="character-image-wrapper">
+          <img 
+            class="character-image" 
+            src="{% if character.is_stamped %}{{ character.image_url }}{% else %}{{ character.silhouette_url }}{% endif %}"
+            alt="{{ character.name }}"
+          />
+          
+          <div class="character-status-badge {% if character.is_stamped %}unlocked{% else %}locked{% endif %}">
+            {% if character.is_stamped %}解放済み{% else %}未解放{% endif %}
+          </div>
+        </div>
+      </div>
+
+      <!-- 右側：キャラクター情報 -->
+      <div class="character-info-section">
+        <div class="character-info-content">
+          <h2 class="character-name">{{ character.name }}</h2>
+          
+          <div class="character-description-label">説明</div>
+          {% if character.is_stamped %}
+          <p class="character-description">{{ character.description }}</p>
+          {% else %}
+          <p class="character-description">このキャラクターは未解放です。スタンプカードで対応スポットのスタンプを押すと表示されます。</p>
+          {% endif %}
+        </div>
+      </div>
+
+    </div>
+  </div>
+  {% empty %}
+  <div class="character-page no-characters">
+    <div class="character-page-container">
+      <p class="empty-message">キャラクターが登録されていません</p>
+    </div>
+  </div>
+  {% endfor %}
+
+  <!-- スクロール指示 -->
+  <div class="scroll-hint" id="scrollHint">
+    <span>↓ スクロール ↓</span>
+  </div>
+</div>
+
+<!-- スタイルとスクリプト -->
+<link rel="stylesheet" href="{% static 'myapp/css/characters.css' %}">
+<script src="{% static 'myapp/js/characters.js' %}"></script>
+
+{% endblock %}
+

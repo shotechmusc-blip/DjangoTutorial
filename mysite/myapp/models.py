@@ -77,4 +77,28 @@ class SSOUser(models.Model):
 	#人間に見せるための表現を決めているだけ。なぜならオブジェクトで表示したらわけわからない文字になるから
 	def __str__(self):
 		return self.external_id
+
+class Character(models.Model):
+	"""
+	擬人化キャラクター（スタンプに割り当てられる）
 	
+	設計理由：
+	- Spot（スタンプ）との1:1関連付けで、スタンプ押下時の画像解放機能を実現
+	- 画像（本物とシルエット）をDB管理し、admin画面で簡単に追加・編集可能
+	- order フィールドで表示順序を制御し、複数キャラクターを柔軟に管理
+	- 説明文を DB に保持することで、テンプレートのハードコード化を回避
+	"""
+	spot = models.OneToOneField(Spot, on_delete=models.CASCADE, related_name='character')  # スタンプへの1:1関連付け
+	name = models.CharField(max_length=100)              # キャラクター名
+	image = models.ImageField(upload_to='characters/')   # 本物の画像
+	silhouette_image = models.ImageField(upload_to='characters/silhouettes/')  # シルエット画像
+	description = models.TextField(blank=True)           # キャラクターの説明
+	order = models.PositiveIntegerField(default=0)       # 表示順序（低い順に表示）
+	created_at = models.DateTimeField(auto_now_add=True) # 作成日時
+	updated_at = models.DateTimeField(auto_now=True)     # 更新日時
+
+	class Meta:
+		ordering = ["order", "id"]
+
+	def __str__(self):
+		return f"{self.name} (#{self.spot.id})"	

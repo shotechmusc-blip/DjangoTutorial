@@ -10,11 +10,11 @@
     </div>
   </section>
 
-  <!-- カード: 左上から順にスタンプ表示（簡易） -->
+  <!-- カード: 数珠円状に5個のスタンプを配置 -->
   <section class="section" aria-label="スタンプカード">
-    <div class="card-grid">
+    <div class="card-grid {% if is_all_stamped %}completed{% endif %}" id="cardGrid">
       {% for slot in slots %}
-        <div class="card-cell {% if slot.spot_id|stringformat:'s' == last_stamped_id %}just-stamped{% endif %} {% if slot.filled %}stamped{% endif %}">
+        <div class="card-cell {% if slot.spot_id|stringformat:'s' == last_stamped_id %}just-stamped{% endif %} {% if slot.filled %}stamped{% endif %}" data-index="{{ forloop.counter0 }}">
           {% if slot.filled %}
             <div class="stamp-circle" aria-label="{{ slot.name }}（押印済み）">
               {% if slot.icon_url %}
@@ -45,4 +45,35 @@
       {% endfor %}
     </div>
   </section>
+
+  <script>
+    // 正五角形の頂点に5個のスタンプを配置
+    document.addEventListener('DOMContentLoaded', function() {
+      const cardGrid = document.getElementById('cardGrid');
+      const cells = cardGrid.querySelectorAll('.card-cell');
+      const itemCount = cells.length;
+      const layout = function() {
+        const rect = cardGrid.getBoundingClientRect();
+        const size = Math.min(rect.width, rect.height);
+        const radius = size * 0.36; // 正五角形の外接円の半径（コンテナ比率）
+        const centerX = rect.width / 2;
+        const centerY = rect.height / 2;
+
+        cells.forEach((cell, index) => {
+          // 最初の要素を上に配置、時計回りに正五角形を描く
+          const angle = (index / itemCount) * 2 * Math.PI - Math.PI / 2;
+          const x = centerX + radius * Math.cos(angle);
+          const y = centerY + radius * Math.sin(angle);
+
+          // セルの中心を指定位置に配置
+          cell.style.left = x + 'px';
+          cell.style.top = y + 'px';
+          cell.style.transform = 'translate(-50%, -50%)';
+        });
+      };
+
+      layout();
+      window.addEventListener('resize', layout);
+    });
+  </script>
 {% endblock %}

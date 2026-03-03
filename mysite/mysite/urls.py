@@ -13,6 +13,7 @@ urlpatterns = [
     path('', include('myapp.urls')),
 ]
 
-# 開発環境でメディアを配信
-if settings.DEBUG:
-    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+# 開発環境またはDEBUG=Falseでもメディア・静的ファイルを配信
+# Docker環境での開発を想定して、DEBUG値に関わらず配信を許可
+urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)

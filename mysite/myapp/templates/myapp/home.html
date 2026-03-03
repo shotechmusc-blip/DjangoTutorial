@@ -13,8 +13,15 @@
   <!-- アクション行：ボタンを横に2つ（マップ／スタンプ） -->
   <section class="section action-section" aria-label="アクション">
     <div class="action-row">
-      <a class="btn btn-primary" href="{% url 'map_index' %}" aria-label="マップを開く">マップ</a>
-      <a class="btn btn-primary" href="{% url 'card' %}" aria-label="スタンプカード">スタンプカード</a>
+      <a class="btn btn-secondary" href="{% url 'map_index' %}" aria-label="マップを開く">マップ</a>
+      <a class="btn btn-primary btn-featured" href="{% url 'card' %}" aria-label="スタンプカード">スタンプカード</a>
+    </div>
+  </section>
+
+  <!-- 擬人化キャラクター行 -->
+  <section class="section action-section" aria-label="擬人化キャラクター">
+    <div class="action-row">
+      <a class="btn btn-primary btn-featured" href="{% url 'characters' %}" aria-label="擬人化キャラクターを表示">擬人化キャラクター</a>
     </div>
   </section>
 {% endblock %}

@@ -13,8 +13,7 @@
    ページレイアウト全体
    ============================================ */
 .characters-wrapper {
-  /* スナップスクロール：各キャラクターページを一度に1画面ずつ表示 */
-  scroll-snap-type: y mandatory;
+  /* 通常スクロール：好きな位置で止まれる */
   height: 100vh;
   overflow-y: scroll;
   background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
@@ -23,7 +22,6 @@
 .character-page {
   /* 各ページを1000px（フルビューポート）に設定 */
   min-height: 100vh;
-  scroll-snap-align: start;
   display: flex;
   align-items: center;
   justify-content: center;

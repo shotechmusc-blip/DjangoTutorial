@@ -12,5 +12,7 @@ urlpatterns = [
     path('card/', views.card, name='card'),
     # スポット詳細（押印）
     path('spot/<int:spot_id>/', views.spot_detail, name='spot_detail'),
+    # 擬人化キャラクター
+    path('characters/', views.characters, name='characters'),
     path("sso/login",views.sso_login,name="sso_login"),
 ]

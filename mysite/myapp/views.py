@@ -2,7 +2,7 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.urls import reverse
 from django.db import models
 import uuid
-from .models import StampRally, Floor, Spot, Stamp, Event,SSOUser
+from .models import StampRally, Floor, Spot, Stamp, Event, SSOUser, Character
 
 def home(request):
 	"""
@@ -54,9 +54,9 @@ def card(request):
 	vid = request.session['visitor_id']
 	stamped_qs = Stamp.objects.filter(visitor_id=vid).select_related('spot').order_by('created_at', 'id')
 	stamped_count = stamped_qs.count()
-	# 進捗はカードのスロット数（最低10）を分母にする
-	base_slots = 10  # 5列×2行の想定（必要に応じて拡張）
-	denom = max(base_slots, total)
+	# 進捗はカードのスロット数（5個）を分母にする
+	base_slots = 5  # 5個の正五角形配置で固定
+	denom = base_slots
 	progress = int((min(stamped_count, denom) / denom) * 100) if denom else 0
 
 	# 直前押印の簡易アニメーション用フラグ
@@ -84,12 +84,16 @@ def card(request):
 				'filled': False,
 			})
 
+	# すべてのスタンプが埋まったかを判定
+	is_all_stamped = stamped_count >= denom
+
 	return render(request, 'myapp/card.html', {
 		'rally': rally,
 		'spots': spots,
 		'slots': slots,
 		'progress': progress,
 		'last_stamped_id': last_stamped_id,
+		'is_all_stamped': is_all_stamped,
 		'back_url': reverse('home'),
 	})
 
@@ -120,6 +124,46 @@ def spot_detail(request, spot_id: int):
 		'events': events,
 		'back_url': reverse('card'),
 	})
+
+def characters(request):
+	"""
+	擬人化キャラクター画面：DB登録されたキャラクターを表示します。
+	スタンプ押下でシルエット画像から本物の画像に置き換え、説明を表示します。
+	
+	設計：
+	- Character モデルから全キャラクターを取得（order順）
+	- テンプレートで動的に描画し、admin画面での管理を容易に
+	- 訪問者IDごとのスタンプ状態をJSで管理（後後バックエンド連携可能）
+	"""
+	_get_visitor_id(request)
+	
+	# DBからキャラクターを取得（order順）
+	characters = Character.objects.select_related('spot').order_by('order', 'id')
+	
+	# 訪問者の押印済みスタンプを取得（集合化して高速判定）
+	vid = request.session['visitor_id']
+	stamped_spots = set(
+		Stamp.objects.filter(visitor_id=vid).values_list('spot_id', flat=True)
+	)
+	
+	# キャラクターデータにスタンプ押下情報をマージ
+	character_data = []
+	for char in characters:
+		character_data.append({
+			'id': char.id,
+			'name': char.name,
+			'description': char.description,
+			'image_url': char.image.url if char.image else None,
+			'silhouette_url': char.silhouette_image.url if char.silhouette_image else None,
+			'stamp_id': char.spot.id,
+			'is_stamped': char.spot.id in stamped_spots,
+		})
+	
+	return render(request, 'myapp/characters.html', {
+		'characters': character_data,
+		'back_url': reverse('home'),
+	})
+
 
 def sso_login(request):
 	#中本先輩のサイトからこちらにアクセスしてくるとき?id=xxxからIDを取得する

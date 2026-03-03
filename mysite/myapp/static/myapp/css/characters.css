@@ -1,0 +1,379 @@
+/**
+ * 擬人化キャラクター ページスタイル
+ * 
+ * 設計方針：
+ * - 1キャラクター = 1画面（フルスクリーン）
+ * - 左側：キャラクター画像（UI主体）
+ * - 右側：名前・説明（テキスト配置）
+ * - スマートフォンファースト（モバイル→タブレット→PC対応）
+ * - スクロール操作で複数キャラクターを閲覧
+ */
+
+/* ============================================
+   ページレイアウト全体
+   ============================================ */
+.characters-wrapper {
+  /* スナップスクロール：各キャラクターページを一度に1画面ずつ表示 */
+  scroll-snap-type: y mandatory;
+  height: 100vh;
+  overflow-y: scroll;
+  background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+}
+
+.character-page {
+  /* 各ページを1000px（フルビューポート）に設定 */
+  min-height: 100vh;
+  scroll-snap-align: start;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+  
+  /* フォールバック背景 */
+  background-color: #f9f9f9;
+}
+
+.character-page-container {
+  /* 実コンテンツの最大幅を制限 */
+  width: 100%;
+  max-width: 1200px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 2rem;
+  align-items: center;
+}
+
+/* ============================================
+   キャラクター画像エリア（左側）
+   ============================================ */
+.character-visual-section {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.character-image-wrapper {
+  position: relative;
+  width: 100%;
+  max-width: 280px;
+  max-height: 70vh;
+  aspect-ratio: 3 / 4; /* 画像の縦横比を固定 */
+  background-color: #e9ecef;
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
+  
+  /* 画像のドラッグを防止 */
+  user-select: none;
+  -webkit-user-drag: none;
+}
+
+.character-image {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  object-position: center;
+  display: block;
+  background-color: #f5f5f5;
+  
+  /* 画像遷移アニメーション */
+  transition: opacity 0.6s ease-out;
+}
+
+/* ============================================
+   解放状態バッジ（画像上のオーバーレイ）
+   ============================================ */
+.character-status-badge {
+  position: absolute;
+  bottom: 16px;
+  right: 16px;
+  background-color: rgba(255, 255, 255, 0.95);
+  border-radius: 999px;
+  padding: 0.4rem 0.8rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  z-index: 10;
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+
+.character-status-badge.locked {
+  background-color: rgba(80, 80, 80, 0.92);
+  color: #fff;
+}
+
+.character-status-badge.unlocked {
+  background-color: rgba(40, 167, 69, 0.92);
+  color: #fff;
+}
+
+.stamp-text {
+  font-size: 0.65rem;
+  font-weight: 700;
+  color: #333;
+  text-align: center;
+  line-height: 1.2;
+}
+
+/* 互換用（旧クラス定義を無効化） */
+.character-stamp-overlay {
+  display: none;
+}
+
+/* ============================================
+   キャラクター情報エリア（右側）
+   ============================================ */
+.character-info-section {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  min-height: 300px;
+}
+
+.character-info-content {
+  padding: 2rem;
+  background-color: white;
+  border-radius: 12px;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+}
+
+.character-name {
+  font-size: 1.8rem;
+  font-weight: 700;
+  color: #333;
+  margin: 0 0 1.5rem 0;
+  line-height: 1.3;
+}
+
+.character-description-label {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #666;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin-bottom: 0.75rem;
+}
+
+.character-description {
+  font-size: 0.95rem;
+  line-height: 1.6;
+  color: #555;
+  margin: 0;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+/* ============================================
+   スクロール指示（最初のページのみ表示）
+   ============================================ */
+.scroll-hint {
+  position: fixed;
+  bottom: 2rem;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 0.9rem;
+  color: rgba(0, 0, 0, 0.6);
+  text-align: center;
+  animation: bounce 2s infinite;
+  pointer-events: none;
+  z-index: 5;
+}
+
+@keyframes bounce {
+  0%, 100% {
+    transform: translateX(-50%) translateY(0);
+  }
+  50% {
+    transform: translateX(-50%) translateY(8px);
+  }
+}
+
+/* スクロール後、指示を非表示 */
+.scroll-hint.hide {
+  opacity: 0;
+  pointer-events: none;
+}
+
+/* ============================================
+   レスポンシブ対応（タブレット 768px以上）
+   ============================================ */
+@media (max-width: 1024px) {
+  .character-page-container {
+    grid-template-columns: 1fr;
+    gap: 1.5rem;
+  }
+
+  .character-info-content {
+    padding: 1.5rem;
+  }
+
+  .character-name {
+    font-size: 1.5rem;
+  }
+
+  .character-image-wrapper {
+    max-width: 280px;
+  }
+}
+
+/* ============================================
+   スマートフォン対応（768px以下）
+   ============================================ */
+@media (max-width: 768px) {
+  .character-page {
+    padding: 0.5rem;
+  }
+
+  .character-page-container {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+
+  .character-visual-section {
+    order: 1;
+  }
+
+  .character-info-section {
+    order: 2;
+    min-height: auto;
+  }
+
+  .character-image-wrapper {
+    max-width: 250px;
+  }
+
+  .character-info-content {
+    padding: 1.25rem;
+    background-color: rgba(255, 255, 255, 0.95);
+  }
+
+  .character-name {
+    font-size: 1.3rem;
+    margin-bottom: 1rem;
+  }
+
+  .character-description {
+    font-size: 0.9rem;
+    line-height: 1.5;
+  }
+
+  .stamp-text {
+    font-size: 0.55rem;
+  }
+}
+
+/* ============================================
+   スタンプアニメーション
+   ============================================ */
+.character-page.stamp-animation {
+  animation: stampPulse 0.6s ease-out;
+}
+
+@keyframes stampPulse {
+  0% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.02);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+/* 画像置き換えアニメーション */
+.character-image.reveal {
+  animation: imageReveal 0.8s ease-out;
+}
+
+@keyframes imageReveal {
+  from {
+    opacity: 0;
+    filter: blur(4px);
+  }
+  to {
+    opacity: 1;
+    filter: blur(0);
+  }
+}
+
+/* ============================================
+   無キャラクター状態
+   ============================================ */
+.no-characters {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: #f0f0f0;
+}
+
+.empty-message {
+  font-size: 1.2rem;
+  color: #999;
+  text-align: center;
+}
+
+/* ============================================
+   アクセシビリティ対応
+   ============================================ */
+
+/* 暗いモード */
+@media (prefers-color-scheme: dark) {
+  .characters-wrapper {
+    background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
+  }
+
+  .character-page {
+    background-color: #1e1e1e;
+  }
+
+  .character-info-content {
+    background-color: #2d2d2d;
+  }
+
+  .character-name {
+    color: #f0f0f0;
+  }
+
+  .character-description-label {
+    color: #aaa;
+  }
+
+  .character-description {
+    color: #ddd;
+  }
+
+  .scroll-hint {
+    color: rgba(255, 255, 255, 0.5);
+  }
+}
+
+/* 低速ネットワーク・モーション削減対応 */
+@media (prefers-reduced-motion: reduce) {
+  .characters-wrapper {
+    scroll-behavior: auto;
+  }
+
+  .character-status-badge,
+  .character-image,
+  .scroll-hint {
+    transition: none;
+    animation: none;
+  }
+
+  @keyframes bounce {
+    0%, 100% {
+      transform: translateX(-50%);
+    }
+  }
+}
+
+/* スクロール時のスムーズ動作（対応ブラウザ） */
+.characters-wrapper {
+  scroll-behavior: smooth;
+}
+
+/* フォーカス可視性強化（現在は非操作要素のみのため未使用） */
+

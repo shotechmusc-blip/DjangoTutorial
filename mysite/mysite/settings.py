@@ -3,8 +3,11 @@ mysite の設定ファイル。
 
 開発用の基本設定です。必要に応じて調整してください。
 詳しくは Django のドキュメントを参照してください。
+
+Docker 対応: 環境変数から設定を読み込み
 """
 
+import os
 from pathlib import Path
 
 # パス設定: `BASE_DIR / 'subdir'` のように使用します。
@@ -15,12 +18,22 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # 本番のチェックリスト: https://docs.djangoproject.com/en/6.0/howto/deployment/checklist/
 
 # セキュリティ: 本番では SECRET_KEY を安全に管理してください。
-SECRET_KEY = 'django-insecure-85$^3&)w#-9dw$(07#fb==v(8i9g4sghhjee9m)xqn=nju=8zw'
+# Docker: .env ファイルまたは環境変数から読み込み
+SECRET_KEY = os.environ.get(
+    'SECRET_KEY',
+    'django-insecure-85$^3&)w#-9dw$(07#fb==v(8i9g4sghhjee9m)xqn=nju=8zw'
+)
 
 # 本番では DEBUG を無効にしてください。
-DEBUG = True
+# Docker: 環境変数 DEBUG=False で無効化
+DEBUG = os.environ.get('DEBUG', 'True') == 'True'
 
-ALLOWED_HOSTS = []
+# ALLOWED_HOSTS を環境変数から読み込み（カンマ区切り）
+# 例: ALLOWED_HOSTS=localhost,127.0.0.1,app
+ALLOWED_HOSTS = os.environ.get(
+    'ALLOWED_HOSTS',
+    'localhost,127.0.0.1,app'
+).split(',')
 
 
 # アプリケーション設定
@@ -68,13 +81,30 @@ WSGI_APPLICATION = 'mysite.wsgi.application'
 
 # データベース設定
 # 詳細: https://docs.djangoproject.com/en/6.0/ref/settings/#databases
+# Docker: PostgreSQL との互換性を保つために環境変数対応
 
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+db_engine = os.environ.get('DB_ENGINE', 'django.db.backends.sqlite3')
+
+if 'postgresql' in db_engine:
+    # PostgreSQL（本番推奨）
+    DATABASES = {
+        'default': {
+            'ENGINE': db_engine,
+            'NAME': os.environ.get('DB_NAME', 'mydatabase'),
+            'USER': os.environ.get('DB_USER', 'myuser'),
+            'PASSWORD': os.environ.get('DB_PASSWORD', 'mypassword'),
+            'HOST': os.environ.get('DB_HOST', 'db'),
+            'PORT': os.environ.get('DB_PORT', '5432'),
+        }
     }
-}
+else:
+    # SQLite（開発用）
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.sqlite3',
+            'NAME': BASE_DIR / 'db.sqlite3',
+        }
+    }
 
 
 # パスワード検証
@@ -112,6 +142,8 @@ USE_TZ = True
 # 詳細: https://docs.djangoproject.com/en/6.0/howto/static-files/
 
 STATIC_URL = 'static/'
+# Docker 本番: collectstatic の出力先を指定
+STATIC_ROOT = os.environ.get('STATIC_ROOT', BASE_DIR / 'staticfiles')
 
 # メディア（アップロード画像）
 MEDIA_URL = '/media/'

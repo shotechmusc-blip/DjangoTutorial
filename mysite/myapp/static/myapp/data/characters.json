@@ -1,0 +1,46 @@
+{
+  "characters": [
+    {
+      "id": 1,
+      "name": "キャラクター1",
+      "stamp_id": 1,
+      "image_url": "/media/characters/char1.png",
+      "silhouette_url": "/media/characters/char1_silhouette.png"
+    },
+    {
+      "id": 2,
+      "name": "キャラクター2",
+      "stamp_id": 2,
+      "image_url": "/media/characters/char2.png",
+      "silhouette_url": "/media/characters/char2_silhouette.png"
+    },
+    {
+      "id": 3,
+      "name": "キャラクター3",
+      "stamp_id": 3,
+      "image_url": "/media/characters/char3.png",
+      "silhouette_url": "/media/characters/char3_silhouette.png"
+    },
+    {
+      "id": 4,
+      "name": "キャラクター4",
+      "stamp_id": 4,
+      "image_url": "/media/characters/char4.png",
+      "silhouette_url": "/media/characters/char4_silhouette.png"
+    },
+    {
+      "id": 5,
+      "name": "キャラクター5",
+      "stamp_id": 5,
+      "image_url": "/media/characters/char5.png",
+      "silhouette_url": "/media/characters/char5_silhouette.png"
+    }
+  ],
+  "stamps": {
+    "1": true,
+    "2": false,
+    "3": true,
+    "4": false,
+    "5": false
+  }
+}

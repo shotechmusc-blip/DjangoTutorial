@@ -29,10 +29,11 @@ SECRET_KEY = os.environ.get(
 DEBUG = os.environ.get('DEBUG', 'True') == 'True'
 
 # ALLOWED_HOSTS を環境変数から読み込み（カンマ区切り）
-# 例: ALLOWED_HOSTS=localhost,127.0.0.1,app
+# 例: ALLOWED_HOSTS=localhost,127.0.0.1,app,192.168.1.100
+# 本番環境: IP アドレス、ドメインをカンマ区切りで指定
 ALLOWED_HOSTS = os.environ.get(
     'ALLOWED_HOSTS',
-    'localhost,127.0.0.1,app'
+    'localhost,127.0.0.1,app,*'  # '*' で全てのホストを許可（本番はセキュリティ確認後）
 ).split(',')
 
 

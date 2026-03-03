@@ -54,12 +54,16 @@ services:
     image: httpd:2.4-alpine
     container_name: apache-proxy-prod
     ports:
+      # 本番環境では以下のポート設定を使用
+      # HTTP: レンタルサーバーのポート（例: 8080, 8888 など）
       - "80:80"
-      - "443:443"
+      # HTTPS 対応する場合のみ以下を有効化
+      # - "443:443"
     volumes:
       - ./apache/app.conf:/usr/local/apache2/conf/vhosts.d/app.conf:ro
-      - ./certs/server.crt:/etc/ssl/certs/server.crt:ro
-      - ./certs/server.key:/etc/ssl/private/server.key:ro
+      # SSL証明書は後から設定 (本番環境で自動取得する場合)
+      # - ./certs/server.crt:/etc/ssl/certs/server.crt:ro
+      # - ./certs/server.key:/etc/ssl/private/server.key:ro
     depends_on:
       - app
     networks:

@@ -60,10 +60,18 @@ services:
       # HTTPS 対応する場合のみ以下を有効化
       # - "443:443"
     volumes:
-      - ./apache/app.conf:/usr/local/apache2/conf/vhosts.d/app.conf:ro
+      - ./apache/app.conf:/usr/local/apache2/conf/extra/httpd-vhosts.conf:ro
       # SSL証明書は後から設定 (本番環境で自動取得する場合)
       # - ./certs/server.crt:/etc/ssl/certs/server.crt:ro
       # - ./certs/server.key:/etc/ssl/private/server.key:ro
+    command: >
+      sh -c "
+      sed -i 's/^#LoadModule proxy_module/LoadModule proxy_module/' /usr/local/apache2/conf/httpd.conf &&
+      sed -i 's/^#LoadModule proxy_http_module/LoadModule proxy_http_module/' /usr/local/apache2/conf/httpd.conf &&
+      sed -i 's/^#LoadModule rewrite_module/LoadModule rewrite_module/' /usr/local/apache2/conf/httpd.conf &&
+      sed -i 's|^#Include conf/extra/httpd-vhosts.conf|Include conf/extra/httpd-vhosts.conf|' /usr/local/apache2/conf/httpd.conf &&
+      httpd-foreground
+      "
     depends_on:
       - app
     networks:

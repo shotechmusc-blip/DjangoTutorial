@@ -69,6 +69,9 @@ services:
       # - "443:443"
     volumes:
       - ./apache/app.conf:/usr/local/apache2/conf/extra/httpd-vhosts.conf:ro
+      # Django アプリの静的ファイルをApacheから配信
+      - static_volume:/app/staticfiles:ro
+      - media_volume:/app/media:ro
       # SSL証明書は後から設定 (本番環境で自動取得する場合)
       # - ./certs/server.crt:/etc/ssl/certs/server.crt:ro
       # - ./certs/server.key:/etc/ssl/private/server.key:ro

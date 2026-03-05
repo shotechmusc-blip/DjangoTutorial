@@ -54,8 +54,8 @@ def card(request):
 	vid = request.session['visitor_id']
 	stamped_qs = Stamp.objects.filter(visitor_id=vid).select_related('spot').order_by('created_at', 'id')
 	stamped_count = stamped_qs.count()
-	# 進捗はカードのスロット数（5個）を分母にする
-	base_slots = 5  # 5個の正五角形配置で固定
+	# 進捗はカードのスロット数（4個）を分母にする
+	base_slots = 4  # 4個の2×2グリッド配置で固定
 	denom = base_slots
 	progress = int((min(stamped_count, denom) / denom) * 100) if denom else 0
 

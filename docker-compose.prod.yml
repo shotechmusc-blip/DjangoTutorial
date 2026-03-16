@@ -20,8 +20,8 @@ services:
       - DB_NAME=${DB_NAME}
       - DB_USER=${DB_USER}
       - DB_PASSWORD=${DB_PASSWORD}
-      - DB_HOST=db
-      - DB_PORT=5432
+      - DB_HOST=${DB_HOST:-db}
+      - DB_PORT=${DB_PORT:-5432}
       - DB_CONNECT_TIMEOUT=${DB_CONNECT_TIMEOUT:-5}
       - DB_WAIT_SECONDS=${DB_WAIT_SECONDS:-180}
       - DB_WAIT_INTERVAL=${DB_WAIT_INTERVAL:-3}
@@ -46,13 +46,16 @@ services:
       - POSTGRES_USER=${DB_USER}
       - POSTGRES_PASSWORD=${DB_PASSWORD}
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} || exit 1"]
+      test: ["CMD-SHELL", "pg_isready -h 127.0.0.1 -p 5432 -U $${POSTGRES_USER} || exit 1"]
       interval: 10s
       timeout: 10s
       retries: 5
       start_period: 20s
     networks:
-      - app-network
+      app-network:
+        aliases:
+          - db
+          - django-db-prod
     restart: always
 
   reverse_proxy:

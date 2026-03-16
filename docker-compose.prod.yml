@@ -22,14 +22,12 @@ services:
       - DB_PASSWORD=${DB_PASSWORD}
       - DB_HOST=db
       - DB_PORT=5432
+      - DB_CONNECT_TIMEOUT=${DB_CONNECT_TIMEOUT:-5}
+      - DB_WAIT_SECONDS=${DB_WAIT_SECONDS:-180}
+      - DB_WAIT_INTERVAL=${DB_WAIT_INTERVAL:-3}
       # HTTP運用中はCOOPヘッダーを無効化（HTTPS移行後はTrueに戻す）
       - ENABLE_HTTPS=${ENABLE_HTTPS:-False}
-    command: >
-      sh -c "
-      python manage.py migrate &&
-      python manage.py collectstatic --noinput &&
-      gunicorn --bind 0.0.0.0:8000 --workers 3 --timeout 60 mysite.wsgi:application
-      "
+    command: ["sh", "/app/entrypoint.prod.sh"]
     depends_on:
       db:
         condition: service_healthy

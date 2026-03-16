@@ -85,6 +85,7 @@ WSGI_APPLICATION = 'mysite.wsgi.application'
 # Docker: PostgreSQL との互換性を保つために環境変数対応
 
 db_engine = os.environ.get('DB_ENGINE', 'django.db.backends.sqlite3')
+db_connect_timeout = int(os.environ.get('DB_CONNECT_TIMEOUT', '5'))
 
 if 'postgresql' in db_engine:
     # PostgreSQL（本番推奨）
@@ -96,6 +97,9 @@ if 'postgresql' in db_engine:
             'PASSWORD': os.environ.get('DB_PASSWORD', 'mypassword'),
             'HOST': os.environ.get('DB_HOST', 'db'),
             'PORT': os.environ.get('DB_PORT', '5432'),
+            'OPTIONS': {
+                'connect_timeout': db_connect_timeout,
+            },
         }
     }
 else:

@@ -3,6 +3,9 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
+      network: ${DOCKER_BUILD_NETWORK:-default}
+      args:
+        PIP_INDEX_URL: ${PIP_INDEX_URL:-https://pypi.org/simple}
     container_name: stamp-app-prod
     env_file:
       - .env
@@ -40,13 +43,13 @@ services:
     env_file:
       - .env
     environment:
-      POSTGRES_DB: ${DB_NAME}
-      POSTGRES_USER: ${DB_USER}
-      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_DB: ${DB_NAME:-stampdb_prod}
+      POSTGRES_USER: ${DB_USER:-stampadmin}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-replace-with-strong-db-password}
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -h 127.0.0.1 -p ${DB_PORT:-5432} -U ${DB_USER} -d ${DB_NAME} || exit 1"]
+      test: ["CMD-SHELL", "pg_isready -h 127.0.0.1 -p ${DB_PORT:-5432} -U ${DB_USER:-stampadmin} -d ${DB_NAME:-stampdb_prod} || exit 1"]
       interval: 10s
       timeout: 5s
       retries: 10
@@ -67,8 +70,8 @@ services:
       - ./apache/app.conf:/usr/local/apache2/conf/extra/httpd-vhosts.conf:ro
       - static_volume:/app/staticfiles:ro
       - media_volume:/app/media:ro
-      - ${LETSENCRYPT_LIVE_DIR}/fullchain.pem:/usr/local/apache2/conf/server.crt:ro
-      - ${LETSENCRYPT_LIVE_DIR}/privkey.pem:/usr/local/apache2/conf/server.key:ro
+      - ${LETSENCRYPT_LIVE_DIR:-/etc/letsencrypt/live/oc-stamp.cc.it-hiroshima.ac.jp}/fullchain.pem:/usr/local/apache2/conf/server.crt:ro
+      - ${LETSENCRYPT_LIVE_DIR:-/etc/letsencrypt/live/oc-stamp.cc.it-hiroshima.ac.jp}/privkey.pem:/usr/local/apache2/conf/server.key:ro
     command: >
       sh -c "
       sed -i 's/^#LoadModule mime_module/LoadModule mime_module/' /usr/local/apache2/conf/httpd.conf &&

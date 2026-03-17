@@ -4,20 +4,24 @@ FROM python:3.12-slim AS builder
 
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
-    PIP_DISABLE_PIP_VERSION_CHECK=1
+    PIP_DISABLE_PIP_VERSION_CHECK=1 \
+    PIP_DEFAULT_TIMEOUT=30
 
 WORKDIR /build
 
+ARG PIP_INDEX_URL=https://pypi.org/simple
+
 COPY requirements.txt ./
-RUN python -m pip install --upgrade pip \
-    && pip install --prefix=/install --no-cache-dir --only-binary=:all: -r requirements.txt
+RUN python -m pip install --upgrade pip --retries 5 --timeout 30 --index-url "${PIP_INDEX_URL}" \
+    && pip install --prefix=/install --no-cache-dir --only-binary=:all: --retries 5 --timeout 30 --index-url "${PIP_INDEX_URL}" -r requirements.txt
 
 
 FROM python:3.12-slim AS runtime
 
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
-    PIP_DISABLE_PIP_VERSION_CHECK=1
+    PIP_DISABLE_PIP_VERSION_CHECK=1 \
+    PIP_DEFAULT_TIMEOUT=30
 
 WORKDIR /app
 

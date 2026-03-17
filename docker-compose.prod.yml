@@ -28,6 +28,18 @@ services:
       # HTTP運用中はCOOPヘッダーを無効化（HTTPS移行後はTrueに戻す）
       - ENABLE_HTTPS=${ENABLE_HTTPS:-False}
     command: ["sh", "/app/entrypoint.prod.sh"]
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "python",
+          "-c",
+          "from urllib.request import urlopen; urlopen('http://127.0.0.1:8000/', timeout=5).read(1)",
+        ]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
     depends_on:
       db:
         condition: service_healthy

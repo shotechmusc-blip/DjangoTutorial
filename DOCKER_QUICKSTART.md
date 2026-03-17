@@ -1,80 +1,65 @@
 # Docker クイックスタート
 
-## 📦 必須
-- Docker Desktop for Windows（https://www.docker.com/products/docker-desktop）
+## 必須
+- Docker Desktop for Windows
+- 証明書取得済み（Let's Encrypt）
+	- `/etc/letsencrypt/live/oc-stamp.cc.it-hiroshima.ac.jp/fullchain.pem`
+	- `/etc/letsencrypt/live/oc-stamp.cc.it-hiroshima.ac.jp/privkey.pem`
 
-## 🚀 開発環境の即実行（5分）
+## 開発環境（ローカル）
 
 ```powershell
-# 1. プロジェクトフォルダに移動
+# 1. プロジェクトへ移動
 cd c:\my_project\stanp_rally\DjangoTutorial
 
-# 2. Docker イメージをビルド（初回のみ約3-5分）
-docker-compose build
+# 2. 起動（ビルド込み）
+docker compose up -d --build
 
-# 3. コンテナを起動
-docker-compose up -d
+# 3. アプリログ確認
+docker compose logs -f app
 
-# 4. 起動ログを確認
-docker-compose logs -f app
-
-# 5. ブラウザで確認
+# 4. アクセス
 # http://localhost:8000
-
-# 6. 管理画面でユーザー作成
-docker-compose exec app python manage.py createsuperuser
-# http://localhost:8000/admin
 ```
 
-## 📝 日常的なコマンド
+## 本番相当環境（HTTPS + Apache + PostgreSQL）
 
 ```powershell
-# ログを表示
-docker-compose logs --tail 100 app
-
-# コンテナ内でコマンド実行
-docker-compose exec app python manage.py migrate
-docker-compose exec app python manage.py shell
-
-# コンテナを一時停止
-docker-compose stop
-
-# 再開
-docker-compose start
-
-# 完全に削除（データがリセット）
-docker-compose down -v
-
-# イメージを再ビルド（コード編集後）
-docker-compose build --no-cache
-docker-compose up -d
-```
-
-## 📊 トラブル対応
-
-| 問題 | 解決策 |
-|------|--------|
-| ポート 8000 が使用中 | 別のターミナルで `docker-compose down`：または `docker-compose.yml` の `ports:` を変更 |
-| マイグレーション失敗 | `docker-compose exec app python manage.py migrate --verbosity 2` でエラーを確認 |
-| コードが反映されない | `docker-compose build --no-cache && docker-compose up -d` で再ビルド |
-| 権限エラー | `docker-compose down -v` で完全リセット |
-
-## 🔐 本番環境へのデプロイ
-
-```powershell
-# 1. 環境変数の設定
+# 1. 環境変数テンプレートをコピー
 Copy-Item .env.example .env
-# .env を編集して本番情報を入力
 
-# 2. 本番イメージのビルド
-docker-compose -f docker-compose.prod.yml build
+# 2. .env を編集
+# SECRET_KEY / DB_PASSWORD / LETSENCRYPT_LIVE_DIR を本番値に変更
 
-# 3. 起動
-docker-compose -f docker-compose.prod.yml up -d
+# 3. 本番構成を起動
+docker compose -f docker-compose.prod.yml up -d --build
 
-# 4. ログ監視
-docker-compose -f docker-compose.prod.yml logs -f
+# 4. 状態確認
+docker compose -f docker-compose.prod.yml ps
+docker compose -f docker-compose.prod.yml logs -f app
+docker compose -f docker-compose.prod.yml logs -f reverse_proxy
 ```
 
-## 📚 詳細ガイド
-👉 [DOCKER_GUIDE.md](./DOCKER_GUIDE.md) を参照
+## アクセス確認
+- `http://150.19.10.214` は `https://oc-stamp.cc.it-hiroshima.ac.jp` にリダイレクト
+- `https://oc-stamp.cc.it-hiroshima.ac.jp` でアプリ表示
+
+## よく使うコマンド
+
+```powershell
+# 停止
+docker compose down
+docker compose -f docker-compose.prod.yml down
+
+# DB含め完全削除（注意: データ消去）
+docker compose -f docker-compose.prod.yml down -v
+
+# マイグレーションを手動実行
+docker compose -f docker-compose.prod.yml exec app python manage.py migrate
+
+# 管理ユーザー作成
+docker compose -f docker-compose.prod.yml exec app python manage.py createsuperuser
+```
+
+## 詳細
+詳細は `DOCKER_GUIDE.md` を参照してください。

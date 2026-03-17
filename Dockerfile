@@ -1,53 +1,46 @@
-# マルチステージビルド: 本番環境に最適化された小さいイメージ生成
+# syntax=docker/dockerfile:1
 
-# ステージ1: ビルド
-FROM python:3.12-slim as builder
+FROM python:3.12-slim AS builder
+
+ENV PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1
 
 WORKDIR /build
 
-# システム依存関係をインストール（Pillow等の複雑なパッケージのため）
 RUN apt-get update && apt-get install -y --no-install-recommends \
     build-essential \
     libpq-dev \
     && rm -rf /var/lib/apt/lists/*
 
-# Pythonの依存関係をインストール
-COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
+COPY requirements.txt ./
+RUN python -m pip install --upgrade pip \
+    && pip install --prefix=/install --no-cache-dir -r requirements.txt
 
 
-# ステージ2: ランタイム
-FROM python:3.12-slim
+FROM python:3.12-slim AS runtime
 
-# メタデータ
-LABEL maintainer="Django App"
-LABEL description="Django application running with Gunicorn"
-
-# 環境変数設定
-ENV PYTHONUNBUFFERED=1 \
-    PYTHONDONTWRITEBYTECODE=1 \
-    PATH="/app/.venv/bin:$PATH"
+ENV PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1
 
 WORKDIR /app
 
-# ビルドステージからインストール済みパッケージをコピー
-COPY --from=builder /usr/local/lib/python3.12/site-packages /usr/local/lib/python3.12/site-packages
-COPY --from=builder /usr/local/bin /usr/local/bin
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    libpq5 \
+    && rm -rf /var/lib/apt/lists/*
 
-# アプリケーションコードをコピー
+COPY --from=builder /install /usr/local
 COPY mysite/ /app/
 
-# 非rootユーザーを作成（セキュリティベストプラクティス）
-RUN useradd -m -u 1000 appuser && chown -R appuser:appuser /app
+RUN useradd --create-home --uid 1000 appuser \
+    && mkdir -p /app/staticfiles /app/media \
+    && chown -R appuser:appuser /app \
+    && chmod +x /app/entrypoint.prod.sh
+
 USER appuser
 
-# Static filesの収集ディレクトリを作成（権限確認）
-RUN mkdir -p /app/staticfiles
+EXPOSE 8000
 
-# ヘルスチェック
-HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
+HEALTHCHECK --interval=30s --timeout=10s --start-period=45s --retries=3 \
     CMD python -c "from urllib.request import urlopen; urlopen('http://127.0.0.1:8000/', timeout=5).read(1)" || exit 1
 
-# アプリケーション起動
-EXPOSE 8000
 CMD ["gunicorn", "--bind", "0.0.0.0:8000", "--workers", "3", "--timeout", "60", "mysite.wsgi:application"]

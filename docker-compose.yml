@@ -1,93 +1,31 @@
 
 services:
-  # Django アプリケーション（バックエンド）
   app:
     build:
       context: .
       dockerfile: Dockerfile
-    container_name: django-app
+    container_name: stamp-app-dev
+    env_file:
+      - .env
+    environment:
+      DEBUG: "True"
+      ENABLE_HTTPS: "False"
+      ALLOWED_HOSTS: "localhost,127.0.0.1,app"
+      DB_ENGINE: django.db.backends.sqlite3
     ports:
       - "8000:8000"
     volumes:
-      # 開発時のコード変更をリアルタイム反映
       - ./mysite:/app
-      # メディアファイル永続化
-      - media_volume:/app/media
-      # staticfiles永続化
       - static_volume:/app/staticfiles
-    environment:
-      - DEBUG=True
-      - ALLOWED_HOSTS=localhost,127.0.0.1,app
-      - SECRET_KEY=your-secret-key-change-in-production
-      - DATABASE_URL=sqlite:////app/db.sqlite3
-    depends_on:
-      - db
-    networks:
-      - app-network
+      - media_volume:/app/media
     restart: unless-stopped
     command: >
       sh -c "
       python manage.py migrate &&
       python manage.py collectstatic --noinput &&
-      gunicorn --bind 0.0.0.0:8000 --workers 3 --timeout 60 mysite.wsgi:application
+      gunicorn --bind 0.0.0.0:8000 --workers 2 --timeout 60 mysite.wsgi:application
       "
-
-  # SQLiteの代わりにPostgresに変更する場合はこちらを有効化
-  # db:
-  #   image: postgres:16-alpine
-  #   container_name: django-db
-  #   volumes:
-  #     - postgres_data:/var/lib/postgresql/data
-  #   environment:
-  #     - POSTGRES_DB=mydatabase
-  #     - POSTGRES_USER=myuser
-  #     - POSTGRES_PASSWORD=mypassword
-  #   networks:
-  #     - app-network
-  #   restart: unless-stopped
-
-  # SQLite永続化用のダミーサービス（ローカル開発用）
-  db:
-    image: alpine:latest
-    container_name: django-db-dummy
-    volumes:
-      - sqlite_data:/app/data
-    networks:
-      - app-network
-    restart: unless-stopped
-    command: tail -f /dev/null
-
-  # Apacheリバースプロキシ
-  reverse_proxy:
-    image: httpd:2.4-alpine
-    container_name: apache-proxy
-    ports:
-      - "80:80"
-      - "443:443"
-    volumes:
-      - ./apache/app.conf:/usr/local/apache2/conf/vhosts.d/app.conf:ro
-      # SSL証明書（本番時に追加）
-      # - ./certs/server.crt:/etc/ssl/certs/server.crt:ro
-      # - ./certs/server.key:/etc/ssl/private/server.key:ro
-    depends_on:
-      - app
-    networks:
-      - app-network
-    restart: unless-stopped
-    environment:
-      - APACHE_RUN_USER=www-data
-      - APACHE_RUN_GROUP=www-data
 
 volumes:
   media_volume:
-    driver: local
   static_volume:
-    driver: local
-  sqlite_data:
-    driver: local
-  # postgres_data:
-  #   driver: local
-
-networks:
-  app-network:
-    driver: bridge

@@ -38,10 +38,16 @@ sys.exit(1)
 PY
 
 printf '[entrypoint] Running database migrations...\n'
-python manage.py migrate
+python manage.py migrate --noinput
 
 printf '[entrypoint] Collecting static files...\n'
 python manage.py collectstatic --noinput
 
 printf '[entrypoint] Starting gunicorn...\n'
-exec gunicorn --bind 0.0.0.0:8000 --workers "${GUNICORN_WORKERS:-3}" --timeout "${GUNICORN_TIMEOUT:-60}" mysite.wsgi:application
+exec gunicorn \
+    --bind "0.0.0.0:${GUNICORN_PORT:-8000}" \
+    --workers "${GUNICORN_WORKERS:-3}" \
+    --timeout "${GUNICORN_TIMEOUT:-60}" \
+    --access-logfile - \
+    --error-logfile - \
+    mysite.wsgi:application

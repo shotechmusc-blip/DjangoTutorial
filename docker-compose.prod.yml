@@ -1,91 +1,74 @@
-# 本番環境用 docker-compose（環境変数かシークレットで管理）
-
 services:
   app:
     build:
       context: .
       dockerfile: Dockerfile
-    container_name: django-app-prod
+    container_name: stamp-app-prod
+    env_file:
+      - .env
+    environment:
+      DEBUG: "False"
+      ENABLE_HTTPS: ${ENABLE_HTTPS:-True}
+      DB_ENGINE: django.db.backends.postgresql
+      DB_HOST: ${DB_HOST:-db}
+      DB_PORT: ${DB_PORT:-5432}
+      DB_CONNECT_TIMEOUT: ${DB_CONNECT_TIMEOUT:-5}
+      DB_WAIT_SECONDS: ${DB_WAIT_SECONDS:-180}
+      DB_WAIT_INTERVAL: ${DB_WAIT_INTERVAL:-3}
+    command: ["/app/entrypoint.prod.sh"]
     expose:
       - "8000"
     volumes:
       - static_volume:/app/staticfiles
       - media_volume:/app/media
-    environment:
-      - DEBUG=False
-      - ALLOWED_HOSTS=${ALLOWED_HOSTS}
-      - SECRET_KEY=${SECRET_KEY}
-      # PostgreSQL接続設定
-      - DB_ENGINE=django.db.backends.postgresql
-      - DB_NAME=${DB_NAME}
-      - DB_USER=${DB_USER}
-      - DB_PASSWORD=${DB_PASSWORD}
-      - DB_HOST=${DB_HOST:-db}
-      - DB_PORT=${DB_PORT:-5432}
-      - DB_CONNECT_TIMEOUT=${DB_CONNECT_TIMEOUT:-5}
-      - DB_WAIT_SECONDS=${DB_WAIT_SECONDS:-180}
-      - DB_WAIT_INTERVAL=${DB_WAIT_INTERVAL:-3}
-      # HTTP運用中はCOOPヘッダーを無効化（HTTPS移行後はTrueに戻す）
-      - ENABLE_HTTPS=${ENABLE_HTTPS:-False}
-    command: ["sh", "/app/entrypoint.prod.sh"]
     healthcheck:
-      test:
-        [
-          "CMD",
-          "python",
-          "-c",
-          "from urllib.request import urlopen; urlopen('http://127.0.0.1:8000/', timeout=5).read(1)",
-        ]
+      test: ["CMD", "python", "-c", "from urllib.request import urlopen; urlopen('http://127.0.0.1:8000/', timeout=5).read(1)"]
       interval: 30s
       timeout: 10s
       retries: 3
-      start_period: 40s
+      start_period: 45s
     depends_on:
       db:
         condition: service_healthy
     networks:
       - app-network
-    restart: always
+    restart: unless-stopped
 
-  # 本番データベース（PostgreSQL）
   db:
     image: postgres:16-alpine
-    container_name: django-db-prod
+    container_name: stamp-db-prod
+    env_file:
+      - .env
+    environment:
+      POSTGRES_DB: ${DB_NAME}
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
     volumes:
       - postgres_data:/var/lib/postgresql/data
-    environment:
-      - POSTGRES_DB=${DB_NAME}
-      - POSTGRES_USER=${DB_USER}
-      - POSTGRES_PASSWORD=${DB_PASSWORD}
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -h 127.0.0.1 -p 5432 -U $${POSTGRES_USER} || exit 1"]
+      test: ["CMD-SHELL", "pg_isready -h 127.0.0.1 -p ${DB_PORT:-5432} -U ${DB_USER} -d ${DB_NAME} || exit 1"]
       interval: 10s
-      timeout: 10s
-      retries: 5
+      timeout: 5s
+      retries: 10
       start_period: 20s
     networks:
       app-network:
         aliases:
           - db
-          - django-db-prod
-    restart: always
+    restart: unless-stopped
 
   reverse_proxy:
     image: httpd:2.4-alpine
-    container_name: apache-proxy-prod
+    container_name: stamp-apache-prod
     ports:
-      # 本番環境では以下のポート設定を使用
-      # HTTP: レンタルサーバーのポート（例: 8080, 8888 など）
       - "80:80"
       - "443:443"
     volumes:
       - ./apache/app.conf:/usr/local/apache2/conf/extra/httpd-vhosts.conf:ro
-      # Django アプリの静的ファイルをApacheから配信
       - static_volume:/app/staticfiles:ro
       - media_volume:/app/media:ro
-      # Let's Encrypt 証明書をホストからマウント
-      - /etc/letsencrypt/live/${LETSENCRYPT_DOMAIN:-oc-stamp.cc.it-hiroshima.ac.jp}/fullchain.pem:/usr/local/apache2/conf/server.crt:ro
-      - /etc/letsencrypt/live/${LETSENCRYPT_DOMAIN:-oc-stamp.cc.it-hiroshima.ac.jp}/privkey.pem:/usr/local/apache2/conf/server.key:ro
+      - ${LETSENCRYPT_LIVE_DIR}/fullchain.pem:/usr/local/apache2/conf/server.crt:ro
+      - ${LETSENCRYPT_LIVE_DIR}/privkey.pem:/usr/local/apache2/conf/server.key:ro
     command: >
       sh -c "
       sed -i 's/^#LoadModule mime_module/LoadModule mime_module/' /usr/local/apache2/conf/httpd.conf &&
@@ -95,14 +78,14 @@ services:
       sed -i 's/^#LoadModule ssl_module/LoadModule ssl_module/' /usr/local/apache2/conf/httpd.conf &&
       sed -i 's/^#LoadModule socache_shmcb_module/LoadModule socache_shmcb_module/' /usr/local/apache2/conf/httpd.conf &&
       sed -i 's|^#Include conf/extra/httpd-vhosts.conf|Include conf/extra/httpd-vhosts.conf|' /usr/local/apache2/conf/httpd.conf &&
-      sed -i 's|^#Include conf/extra/httpd-mime.conf|Include conf/extra/httpd-mime.conf|' /usr/local/apache2/conf/httpd.conf &&
       httpd-foreground
       "
     depends_on:
-      - app
+      app:
+        condition: service_started
     networks:
       - app-network
-    restart: always
+    restart: unless-stopped
 
 volumes:
   media_volume:

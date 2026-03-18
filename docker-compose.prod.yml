@@ -34,7 +34,7 @@ services:
       db:
         condition: service_healthy
     networks:
-      - app-network
+      - default
     restart: unless-stopped
 
   db:
@@ -49,15 +49,14 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
-      # Use stable built-in postgres account for readiness checks.
-      # DB_USER in .env may change after first init while the volume keeps old roles.
-      test: ["CMD-SHELL", "pg_isready -h 127.0.0.1 -p ${DB_PORT:-5432} -U postgres -d postgres || exit 1"]
+      # Keep readiness check aligned with configured DB credentials.
+      test: ["CMD-SHELL", "pg_isready -h 127.0.0.1 -p ${DB_PORT:-5432} -U ${DB_USER:-stampadmin} -d ${DB_NAME:-stampdb_prod} || exit 1"]
       interval: 10s
       timeout: 5s
       retries: 10
       start_period: 20s
     networks:
-      app-network:
+      default:
         aliases:
           - db
           - django-db-prod
@@ -92,7 +91,7 @@ services:
       app:
         condition: service_started
     networks:
-      - app-network
+      - default
     restart: unless-stopped
 
 volumes:
@@ -101,5 +100,7 @@ volumes:
   postgres_data:
 
 networks:
-  app-network:
+  default:
     driver: bridge
+    driver_opts:
+      com.docker.network.bridge.name: br-django-net

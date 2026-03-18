@@ -31,10 +31,7 @@ DEBUG = os.environ.get('DEBUG', 'True') == 'True'
 # ALLOWED_HOSTS を環境変数から読み込み（カンマ区切り）
 # 例: ALLOWED_HOSTS=localhost,127.0.0.1,app,192.168.1.100
 # 本番環境: IP アドレス、ドメインをカンマ区切りで指定
-ALLOWED_HOSTS = os.environ.get(
-    'ALLOWED_HOSTS',
-    'localhost,127.0.0.1,app,*'  # '*' で全てのホストを許可（本番はセキュリティ確認後）
-).split(',')
+ALLOWED_HOSTS = ["oc-stamp.cc.it-hiroshima.ac.jp","150.19.10.214"]
 
 
 # アプリケーション設定
@@ -159,3 +156,7 @@ MEDIA_ROOT = BASE_DIR / 'media'
 enable_https = os.environ.get('ENABLE_HTTPS', 'False') == 'True'
 if not enable_https:
     SECURE_CROSS_ORIGIN_OPENER_POLICY = None
+
+CSRF_TRUSTED_ORIGINS = ["https://oc-stamp.cc.it-hiroshima.ac.jp"]
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+USE_X_FORWARDED_HOST = True

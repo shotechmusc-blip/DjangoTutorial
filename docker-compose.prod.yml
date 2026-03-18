@@ -49,7 +49,9 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -h 127.0.0.1 -p ${DB_PORT:-5432} -U ${DB_USER:-stampadmin} -d ${DB_NAME:-stampdb_prod} || exit 1"]
+      # Use stable built-in postgres account for readiness checks.
+      # DB_USER in .env may change after first init while the volume keeps old roles.
+      test: ["CMD-SHELL", "pg_isready -h 127.0.0.1 -p ${DB_PORT:-5432} -U postgres -d postgres || exit 1"]
       interval: 10s
       timeout: 5s
       retries: 10
